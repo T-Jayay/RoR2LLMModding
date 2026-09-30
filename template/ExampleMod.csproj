@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <!-- RiskOfRain2.GameLibs and BepInEx.Core come from the BepInEx feed; nuget.org has the rest. -->
+    <RestoreAdditionalProjectSources>https://nuget.bepinex.dev/v3/index.json</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <!-- Pinned versions. After a game update, bump RiskOfRain2.GameLibs and MMHOOK.RoR2 together. -->
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    <PackageReference Include="RiskOfRain2.GameLibs" Version="1.4.1-r.0" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" IncludeAssets="compile" />
+    <PackageReference Include="MMHOOK.RoR2" Version="2025.12.9" IncludeAssets="compile" NoWarn="NU1701" />
+  </ItemGroup>
+
+  <!-- Optional: copy the build into a mod manager profile, e.g.
+       dotnet build -p:ProfileDir="%APPDATA%\r2modmanPlus-local\RiskOfRain2\profiles\Dev" -->
+  <Target Name="CopyToProfile" AfterTargets="Build" Condition="'$(ProfileDir)' != ''">
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ProfileDir)\BepInEx\plugins\$(AssemblyName)" />
+  </Target>
+
+</Project>

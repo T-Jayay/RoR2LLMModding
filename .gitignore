@@ -1,0 +1,12 @@
+# Build output
+bin/
+obj/
+*.zip
+
+# IDEs and OS files
+.vs/
+.vscode/
+.idea/
+*.user
+Thumbs.db
+.DS_Store

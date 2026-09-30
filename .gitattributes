@@ -1,0 +1,6 @@
+# Text files have LF line endings in the repository and in every checkout.
+* text=auto eol=lf
+
+*.png binary
+*.dll binary
+*.zip binary
