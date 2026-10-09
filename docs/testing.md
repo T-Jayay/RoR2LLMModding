@@ -10,7 +10,7 @@ Launching the game isn't proof that a mod works, and neither is seeing your code
 2. Deploy to the test profile ([setup.md](setup.md)).
 3. After the human has started the game with it, read `<profile>/BepInEx/LogOutput.log`:
    - `Loading [<PluginName> <version>]` for your plugin, and nothing after it that names your plugin, namespace or hooks at `[Error` or `[Warning` level (including your own "IL hook ... failed" messages);
-   - some errors aren't from your mod (seen on 1.4.1: `Could not register 'PrinterItemIcon' since it contains no NetworkIdentity component`, an Addressables `InvalidKeyException`). Compare with a log from the same profile without your mod before blaming or excusing anything.
+   - some errors aren't from your mod (seen on 1.4.1 and 1.5.0: `Could not register 'PrinterItemIcon' since it contains no NetworkIdentity component`, an Addressables `InvalidKeyException`). Compare with a log from the same profile without your mod before blaming or excusing anything.
 4. Find installed mods that touch the same methods. A quick first pass is a text search of the plugin DLLs for the method name (`grep -rl --include=*.dll PollButtonInput <profile>/BepInEx/plugins`): it finds MMHOOK-based hooks but misses targets named by string, so decompile the candidates to be sure. Tell the human which mods to include in the test.
 
 Don't claim a feature works because the log is clean.

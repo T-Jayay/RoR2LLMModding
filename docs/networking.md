@@ -1,6 +1,6 @@
 # Networking and authority
 
-Builds on the R2Wiki's [UNet](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/C%23-Programming/Networking/UNet/), [R2API.NetworkingAPI](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/C%23-Programming/Networking/R2API.NetworkingAPI/) and [Server side and client side mods](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/C%23-Programming/Networking/Server-side-and-client-side-mods/) pages. File and member names below refer to the decompiled game 1.4.1.
+Builds on the R2Wiki's [UNet](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/C%23-Programming/Networking/UNet/), [R2API.NetworkingAPI](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/C%23-Programming/Networking/R2API.NetworkingAPI/) and [Server side and client side mods](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/C%23-Programming/Networking/Server-side-and-client-side-mods/) pages. File and member names below refer to the decompiled game 1.5.0.
 
 Networking is where AI-written mods go wrong most, and no solo test shows it. Use the paths the game already has; if you think you need something new, write down why and ask the human, who can ask the [modding Discord](https://discord.gg/5MbXZvd).
 
@@ -25,17 +25,17 @@ Decide this early and state it in the README:
 
 ## Case study: sprint
 
-Verified in 1.4.1:
+Verified in 1.5.0:
 
 1. The `CharacterBody.isSprinting` setter replicates in two directions: on the server it sets dirty bit 16 (sent to clients); on the authority client it calls `CallCmdUpdateSprint` (sent to the server).
 2. `CharacterBody.OnDeserialize` ignores the server's sprint value where `hasEffectiveAuthority`: the owner decides its own sprint and never takes the server's.
-3. The owner's `PlayerCharacterMasterController.PollButtonInput` starts from `body.isSprinting`, flips it when `sprintInputPressReceived` is set (the sprint key), drops it unless you move within 60° of where you aim (or the body has `SprintAnyDirection`), and pushes the result into `bodyInputs.sprint`.
+3. The owner's `PlayerCharacterMasterController.PollButtonInput` starts from `body.isSprinting`, flips it when the sprint key was just pressed (`buttonBuffers.sprint.Poll()`, read as `PollResult.justPressed`; bodies with the `AllowFlyingControls` handling option follow the held key instead), and pushes the result into `bodyInputs.sprint`. `EntityStates.GenericCharacterMain.GatherInputs` then drops it for player-controlled bodies unless you move within 60° of where you aim (or the body has `SprintAnyDirection`), and `HandleMovements` sets `isSprinting` from it on the authority (off when the move input is 0.5 or less). Up to 1.4.1 the key press was the `sprintInputPressReceived` field and `PollButtonInput` did the 60° check.
 4. Skills also write it. `SkillDef.OnExecute` clears it for skills with `cancelSprintingOnActivation`. `SkillDef.OnFixedUpdate`, called from `GenericSkill.FixedUpdate` on **every copy**, sets `isSprinting = true` while a `forceSprintDuringState` skill is in its activation state, and entity states are replicated from the owner (`NetworkStateMachine`), so this runs on the server's copy too. Entity states differ: `EntityStates.Croco.BaseLeap` sets sprint only `if (isAuthority)`, while `EntityStates.Chef.OilSpillBase` and `EntityStates.Drifter.TornadoSlam` set it on every copy.
 5. `CallCmdUpdateSprint` and `NetworkStateMachine.SendSetEntityState` both send through the client's `ClientScene.readyConnection` on channel 0, `QosChannelIndex.defaultReliable`.
 
 What follows for a mod:
 
-- **Prefer acting through input.** AutoSprint sprints for the player by setting `sprintInputPressReceived` in an IL hook on `PollButtonInput` when its conditions hold; the game then treats it exactly like a key press, on the owner, and tells the server the usual way. Which entity states block or delay sprint is worked out once at startup from the `SkillCatalog` (`[SystemInitializer(typeof(SkillCatalog))]`), plus a short list of exceptions.
+- **Prefer acting through input.** AutoSprint (written for 1.4.1) sprints for the player by setting `sprintInputPressReceived` in an IL hook on `PollButtonInput` when its conditions hold; the game then treats it exactly like a key press, on the owner, and tells the server the usual way. In 1.5.0 the same approach changes the `justPressed` value that `PollButtonInput` reads, as [SprintImprovements](https://github.com/T-Jayay/SprintImprovements) does. Which entity states block or delay sprint is worked out once at startup from the `SkillCatalog` (`[SystemInitializer(typeof(SkillCatalog))]`), plus a short list of exceptions.
 - **If a feature must override a game write** (a last resort; ask the community first), e.g. keep walking speed during a dash that forces sprint, first find out which copies run that write (fact 4). Blocking it on the owner doesn't stop the server's copy, and since the owner ignores the server's value (fact 2), the server stays wrong until the owner sends a change. Correct it once through the game's own command (`CallCmdUpdateSprint`) at a point you can justify from the message order, e.g. once the owner has left the state, since the state change and the command go through the same connection and channel. Never with timers or repeated resends.
 - Order caveat: the EOS transport sends reliable channels as `ReliableOrdered` (`EOSNetworkConnection`); on Steam P2P the send is `SendType.Reliable` (`SteamNetworkConnection.TransportSend`), and in-order delivery there is assumed, not verified here.
 

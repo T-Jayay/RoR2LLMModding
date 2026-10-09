@@ -1,6 +1,6 @@
 # RoR2LLMModding
 
-What a coding agent (Claude Code, Codex, Cursor, ...) needs to know to write Risk of Rain 2 mods the way the RoR2 modding community expects: its conventions, the game's networking model, how to test, and how to publish. It targets game version 1.4.1 and builds on the community's [R2Wiki](https://risk-of-thunder.github.io/R2Wiki/), which it links to throughout.
+What a coding agent (Claude Code, Codex, Cursor, ...) needs to know to write Risk of Rain 2 mods the way the RoR2 modding community expects: its conventions, the game's networking model, how to test, and how to publish. It targets game version 1.5.0 and builds on the community's [R2Wiki](https://risk-of-thunder.github.io/R2Wiki/), which it links to throughout.
 
 It exists because AI-written mods tend to share the same problems: defensive code nobody can read, errors swallowed by try/catch, networking that fights the game, and "it launched, so it works". Facts were checked against the decompiled game, the community's tools and mods, or their documentation; what couldn't be checked is marked as unverified.
 

@@ -1,6 +1,6 @@
 # Setup and project template
 
-Builds on the R2Wiki's [First Mod](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Getting-Started/First-Mod/) and [Assembly References](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/C%23-Programming/Assembly-References/) pages and the [ExamplePlugin](https://github.com/risk-of-thunder/ExamplePlugin). Versions are for game 1.4.1 (Unity 2021.3.33).
+Builds on the R2Wiki's [First Mod](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Getting-Started/First-Mod/) and [Assembly References](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/C%23-Programming/Assembly-References/) pages and the [ExamplePlugin](https://github.com/risk-of-thunder/ExamplePlugin). Versions are for game 1.5.0 (Unity 2021.3.45).
 
 ## What runs in the game
 
@@ -29,9 +29,9 @@ Develop in a separate mod manager profile (r2modman, Thunderstore Mod Manager or
 | Package | Version | Feed | Why |
 |---|---|---|---|
 | `BepInEx.Core` | 5.4.21 | BepInEx | `BaseUnityPlugin`, config, logging |
-| `RiskOfRain2.GameLibs` | 1.4.1-r.0 | BepInEx | Game assemblies: stripped (no method bodies) and publicized. nuget.org only has an old version. |
-| `UnityEngine.Modules` | 2021.3.33 | nuget.org | Unity API, compile-only |
-| `MMHOOK.RoR2` | 2025.12.9 | nuget.org | `On.`/`IL.` hooks, compile-only; matches GameLibs 1.4.1-r.0. `NoWarn="NU1701"` because the package has no netstandard folder. |
+| `RiskOfRain2.GameLibs` | 1.5.0-r.1 | BepInEx | Game assemblies: stripped (no method bodies) and publicized. nuget.org only has an old version. |
+| `UnityEngine.Modules` | 2021.3.45 | nuget.org | Unity API, compile-only |
+| `MMHOOK.RoR2` | 2026.10.8 | nuget.org | `On.`/`IL.` hooks, compile-only; published with GameLibs 1.5.0-r.1. `NoWarn="NU1701"` because the package has no netstandard folder. |
 | `BepInEx.Analyzers` | 1.0.8 | BepInEx | Checks plugin and Harmony code |
 
 - Target `netstandard2.1`. A class library copies none of its package references to the output, so only your DLL is shipped.
@@ -39,7 +39,7 @@ Develop in a separate mod manager profile (r2modman, Thunderstore Mod Manager or
   ```csharp
   [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
   ```
-- **After a game update**, bump `RiskOfRain2.GameLibs` and `MMHOOK.RoR2` together (the MMHOOK must be generated from the same game build), rebuild, and fix what no longer compiles. The R2Wiki keeps a changelog of game API changes per update (e.g. [1.4.1](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Updating-Your-Mods/Updating-Core-API-Changelog-1.4.1/)).
+- **After a game update**, bump `RiskOfRain2.GameLibs` and `MMHOOK.RoR2` together (the MMHOOK must be generated from the same game build), and `UnityEngine.Modules` if the game's Unity version changed. Rebuild and fix what no longer compiles: 1.5.0, for one, removed `PlayerCharacterMasterController.sprintInputPressReceived` (the sprint key now goes through `ButtonBuffer.Poll()`, read as `PollResult.justPressed`) and renamed `SkillIcon.Update` to `LateUpdate`. Not every change breaks the build: a hook on a method the game made `[Obsolete]` compiles and never runs, so check every hook target for new overloads ([hooking.md](hooking.md)). The R2Wiki keeps a changelog of game API changes per update (e.g. [1.4.1](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Updating-Your-Mods/Updating-Core-API-Changelog-1.4.1/)).
 - Add R2API modules, `RoR2BepInExPack` or `Rune580.Mods.RiskOfRain2.RiskOfOptions` from nuget.org only when you use them (see [content.md](content.md), [config.md](config.md)).
 
 ### Starting a new mod from it

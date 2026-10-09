@@ -5,15 +5,17 @@
     <LangVersion>12</LangVersion>
     <!-- RiskOfRain2.GameLibs and BepInEx.Core come from the BepInEx feed; nuget.org has the rest. -->
     <RestoreAdditionalProjectSources>https://nuget.bepinex.dev/v3/index.json</RestoreAdditionalProjectSources>
+    <!-- Calls to game members marked [Obsolete] fail the build: after an update the game may no longer use them. -->
+    <WarningsAsErrors>CS0618</WarningsAsErrors>
   </PropertyGroup>
 
   <!-- Pinned versions. After a game update, bump RiskOfRain2.GameLibs and MMHOOK.RoR2 together. -->
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
-    <PackageReference Include="RiskOfRain2.GameLibs" Version="1.4.1-r.0" />
-    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" IncludeAssets="compile" />
-    <PackageReference Include="MMHOOK.RoR2" Version="2025.12.9" IncludeAssets="compile" NoWarn="NU1701" />
+    <PackageReference Include="RiskOfRain2.GameLibs" Version="1.5.0-r.1" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.45" IncludeAssets="compile" />
+    <PackageReference Include="MMHOOK.RoR2" Version="2026.10.8" IncludeAssets="compile" NoWarn="NU1701" />
   </ItemGroup>
 
   <!-- Optional: copy the build into a mod manager profile, e.g.

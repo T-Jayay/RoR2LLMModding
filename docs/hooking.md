@@ -9,7 +9,7 @@ Builds on the R2Wiki's [Hooking](https://risk-of-thunder.github.io/R2Wiki/Mod-Cr
 3. **An On hook**: code before and/or after the original, calling `orig`.
 4. **An IL hook**: when you must change something in the middle of a method.
 
-Some events and callbacks in 1.4.1 (all static members; check the decompiled invocation site before relying on where one runs):
+Some events and callbacks in 1.5.0 (all static members; check the decompiled invocation site before relying on where one runs):
 
 | Event | Where it runs |
 |---|---|
@@ -17,14 +17,14 @@ Some events and callbacks in 1.4.1 (all static members; check the decompiled inv
 | `Run.onRunStartGlobal`, `Run.onRunDestroyGlobal` | Every machine |
 | `Stage.onStageStartGlobal` / `Stage.onServerStageBegin` | Every machine / server |
 | `CharacterBody.onBodyStartGlobal`, `CharacterBody.onBodyInventoryChangedGlobal`, `CharacterMaster.onStartGlobal` | Every copy of the object, on every machine |
-| `GlobalEventManager.onCharacterDeathGlobal`, `onServerDamageDealt`, `OnInteractionsGlobal` | Server |
+| `GlobalEventManager.onCharacterDeathServer` (every death), `onDeathProcServer` (on-kill effects; skipped for some deaths), `onServerDamageDealt`, `OnInteractionsGlobal` | Server. `onCharacterDeathGlobal` is an `[Obsolete]` alias for `onDeathProcServer` since 1.5.0. |
 | `TeleporterInteraction.onTeleporterChargedGlobal` | Every machine (the charged state runs everywhere) |
 | `ContentManager.collectContentPackProviders` | Once, when content loads |
 
 ```csharp
-GlobalEventManager.onCharacterDeathGlobal += OnCharacterDeath; // in Awake
+GlobalEventManager.onCharacterDeathServer += OnCharacterDeath; // in Awake
 
-// Server only: GlobalEventManager.OnCharacterDeath returns early on clients.
+// Server only: raised by GlobalEventManager.HandleCharacterDeath, which the [Server] HealthComponent.TakeDamage and Suicide call.
 private static void OnCharacterDeath(DamageReport report)
 {
     if (report.attackerBody && report.victimIsBoss) { /* ... */ }
@@ -38,7 +38,8 @@ private static void OnCharacterDeath(DamageReport report)
 `template/ExampleModPlugin.cs` shows the shape. Type `On.RoR2.HealthComponent.TakeDamage +=` and let the IDE generate the handler: `orig`, then `self` for instance methods, then the method's parameters.
 
 - **Call `orig` exactly once.** Hooks chain: the last one registered runs first and calls the next through `orig`, down to the game's method. Not calling it skips the game's code *and every mod hooked before you*. If you really must skip the method, say why in a comment and make the condition as narrow as possible.
-- **Overloads** get their parameter types appended to the name. In MMHOOK.RoR2 2025.12.9, `HealthComponent.TakeDamageForce` has three: `On.RoR2.HealthComponent.TakeDamageForce_DamageInfo_bool_bool`, `..._Vector3_bool_bool` and `..._PhysForceInfo`. Check the decompiled class for overloads before hooking; the IDE's autocomplete lists them.
+- **Overloads** get their parameter types appended to the name. In MMHOOK.RoR2 2026.10.8, `HealthComponent.TakeDamageForce` has three: `On.RoR2.HealthComponent.TakeDamageForce_DamageInfo_bool_bool`, `..._Vector3_bool_bool` and `..._PhysForceInfo`. Check the decompiled class for overloads before hooking; the IDE's autocomplete lists them.
+- **A game update can make a hook dead.** It can turn the method you hook into an `[Obsolete]` wrapper that the game itself no longer calls. 1.5.0 did this to `TeamManager.GiveTeamMoney(TeamIndex, uint)` (now `GiveTeamMoney(TeamIndex, uint, bool)`) and `CharacterMaster.GiveMoney(uint)` (now `GiveMoney(uint, bool)`): `On.RoR2.TeamManager.GiveTeamMoney_TeamIndex_uint` still compiles and loads, with no warning, but never runs. After an update, check every hook target in the decompiled code for `[Obsolete]` and new overloads, and treat CS0618 warnings as errors (the template does): they catch your own calls to an obsolete method, though not hooks on one.
 - **Return values**: `var result = orig(self, ...);`, adjust, return it.
 - **Coroutines**: `yield return orig(self);` runs your code after the whole coroutine. AutoSprint hooks `EntityStateCatalog.Init` this way, because the entity state catalog is filled after `[SystemInitializer]` methods run (`RoR2Application.InitializeGameRoutine`).
 - **Properties have no MMHOOK hooks.** Hook the accessor manually with MonoMod's `Hook`:
@@ -73,7 +74,7 @@ private static void HealthComponent_TakeDamageProcess(ILContext il)
 }
 ```
 
-(The pattern is unique in `TakeDamageProcess` in 1.4.1.) The rules, from the IL Hook page and the community's mods:
+(The pattern is unique in `TakeDamageProcess` in 1.5.0.) The rules, from the IL Hook page and the community's mods:
 
 - **`TryGotoNext`, not `GotoNext`.** On a failed match, log an error that names the hook and return, leaving the method unchanged. This is what AutoSprint and MiscFixes do. Don't throw from the manipulator and don't wrap it in a try/catch.
 - **Match as little as uniquely identifies the spot.** Other mods insert instructions into popular methods (`CharacterBody.RecalculateStats`, `HealthComponent.TakeDamageProcess`, `GlobalEventManager.ProcessHitEnemy`), so long patterns break. Use a landmark first (`TryGotoNext(x => x.MatchLdsfld(typeof(RoR2Content.Items), nameof(RoR2Content.Items.StickyBomb)))`) and then the short pattern.
