@@ -30,7 +30,7 @@ Develop in a separate mod manager profile (r2modman, Thunderstore Mod Manager or
 |---|---|---|---|
 | `BepInEx.Core` | 5.4.21 | BepInEx | `BaseUnityPlugin`, config, logging |
 | `RiskOfRain2.GameLibs` | 1.5.0-r.1 | BepInEx | Game assemblies: stripped (no method bodies) and publicized. nuget.org only has an old version. |
-| `UnityEngine.Modules` | 2021.3.45 | nuget.org | Unity API, compile-only |
+| `UnityEngine.Modules` | 2021.3.45 | BepInEx | Unity API, compile-only. nuget.org only has 2021.3.33. |
 | `MMHOOK.RoR2` | 2026.10.8 | nuget.org | `On.`/`IL.` hooks, compile-only; published with GameLibs 1.5.0-r.1. `NoWarn="NU1701"` because the package has no netstandard folder. |
 | `BepInEx.Analyzers` | 1.0.8 | BepInEx | Checks plugin and Harmony code |
 

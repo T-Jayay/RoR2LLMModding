@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>12</LangVersion>
-    <!-- RiskOfRain2.GameLibs and BepInEx.Core come from the BepInEx feed; nuget.org has the rest. -->
+    <!-- RiskOfRain2.GameLibs, BepInEx.Core and UnityEngine.Modules come from the BepInEx feed; nuget.org has the rest. -->
     <RestoreAdditionalProjectSources>https://nuget.bepinex.dev/v3/index.json</RestoreAdditionalProjectSources>
     <!-- Calls to game members marked [Obsolete] fail the build: after an update the game may no longer use them. -->
     <WarningsAsErrors>CS0618</WarningsAsErrors>
